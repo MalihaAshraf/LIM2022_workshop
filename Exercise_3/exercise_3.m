@@ -6,7 +6,8 @@ load('../M.mat');
 %% Compare luminance/lightness values between different colour spaces
 
 figure,
-grey_px = 0:0.1:1;
+grid_spacing = 0.05; % change this value to increase or decrease number of points
+grey_px = 0:grid_spacing:1;
 rgb_grey = (cat(1, grey_px, grey_px, grey_px))';
 colors = lin2rgb(rgb_grey);
 
@@ -141,8 +142,8 @@ opp_chrom = DKL_chrom(:,2:3);
 scatter(opp_chrom(:,1), opp_chrom(:,2), mk_size, colors, 'filled'); hold on
 axis square
 grid on
-xlabel('L-M')
-ylabel('S-(L+M)')
+xlabel('Red-green')
+ylabel('Yellow-violet')
 title(sprintf('(L+M)_{mean} = %.4f cd/m^2', mean(DKL_chrom(:,1))));
 
 
