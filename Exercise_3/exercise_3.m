@@ -55,7 +55,8 @@ ylabel('Lightenss (Luv space)')
 grid on
 clear Luv_grey L2_grey
 
-% Lightness values are not a linear transform of linear RGB values
+% Lightness values are not a linear transform of linear RGB values and the
+% resulting values are not equally spaced
 
 
 %% Compare chromaticity coordinaes between different colorspaces
@@ -65,45 +66,57 @@ clear Luv_grey L2_grey
 
 L_mid = 76;  % play around with this value to view different gamuts at different lightness levels
 
+mk_size = 10; % change marker size of scatter plots
+grid_spacing = 10; % change color coordinates grid density
 
-[a_mat, b_mat] = meshgrid(-100:10:100, -100:10:100);
+[a_mat, b_mat] = meshgrid(-200:grid_spacing:200, -200:grid_spacing:200);
 ab = [reshape(a_mat, numel(a_mat), 1), reshape(b_mat, numel(b_mat), 1)];
-r = sqrt( ab(:,1).^2 + ab(:,2).^2);
-ab_chrom = ab(r<= 100, :);
+ab_chrom = ab;
+
 Lab_chrom = [L_mid*ones(length(ab_chrom),1), ab_chrom];
 colors = lab2rgb(Lab_chrom, 'WhitePoint', 'd65');
 RGB_chrom = rgb2lin(colors); % linear RGB
-clear a_mat b_mat r ab
 
 remove_out_of_gamut = true;
 if remove_out_of_gamut
     % removes colors which are beyond the display's gamut
-    criteria = ~logical(sum(colors < -0, 2));
+    criteria = ~logical(sum(colors < 0, 2));
+    Lab_chrom = Lab_chrom(criteria, :);
+    ab_chrom = ab_chrom(criteria, :);
+    colors = colors(criteria, :);
+    RGB_chrom = RGB_chrom(criteria, :);
+else
+    r = sqrt( ab(:,1).^2 + ab(:,2).^2);
+    criteria = logical(r<= 128);
     Lab_chrom = Lab_chrom(criteria, :);
     ab_chrom = ab_chrom(criteria, :);
     colors = colors(criteria, :);
     RGB_chrom = RGB_chrom(criteria, :);
 end
 
+clear a_mat b_mat r ab
+
 figure, 
 % Plot chromaticity coordinates in Lab space
 subplot(2, 2, 1)
-scatter(ab_chrom(:,1), ab_chrom(:,2), 20, colors, 'filled', 'MarkerEdgeColor', 'k'); hold on
+scatter(ab_chrom(:,1), ab_chrom(:,2), mk_size, colors, 'filled'); hold on
 axis square
+grid on
 xlabel('-a* ---------- 0 ---------- +a*')
 ylabel('-b* ---------- 0 ---------- +b*')
-
+title(sprintf('L* = %d', L_mid));
 
 
 % Plot chromaticity coordinates in Luv space
 subplot(2, 2, 2)
 Luv_chrom = rgb2luv(RGB_chrom, 'd65');
 uv_chrom = Luv_chrom(:, 2:3); 
-scatter(uv_chrom(:,1), uv_chrom(:,2), 20, colors, 'filled', 'MarkerEdgeColor', 'k'); hold on
+scatter(uv_chrom(:,1), uv_chrom(:,2), mk_size, colors, 'filled'); hold on
 axis square
+grid on
 xlabel('-u* ---------- 0 ---------- +u*')
 ylabel('-v* ---------- 0 ---------- +v*')
-
+title(sprintf('L* = %d', L_mid));
 
 
 % Plot chromaticity coordinates in xy space
@@ -111,21 +124,26 @@ subplot(2, 2, 3)
 XYZ_chrom = lab2xyz(Lab_chrom, 'WhitePoint', 'd65');
 xy_chrom = XYZ2Yxy(XYZ_chrom);
 xy_chrom = xy_chrom(:,2:3);
-scatter(xy_chrom(:,1), xy_chrom(:,2), 20, colors, 'filled', 'MarkerEdgeColor', 'k'); hold on
+scatter(xy_chrom(:,1), xy_chrom(:,2), mk_size, colors, 'filled'); hold on
 axis square
+grid on
 xlabel('x')
 ylabel('y')
+title(sprintf('Y_{mean} = %.4f cd/m^2', mean(XYZ_chrom(:,2)).*max_lum_sdr));
 
 
 % Plot chromaticity coordinates in opponent color mechanism
 subplot(2, 2, 4)
-LMS_chrom = RGB_chrom * M_rgb2lms_sdr';
+% LMS_chrom = RGB_chrom * M_rgb2lms_sdr';
+LMS_chrom = (XYZ_chrom.*max_lum_sdr) * M_xyz2lms';
 DKL_chrom = LMS_chrom * M_lms2dkl';
 opp_chrom = DKL_chrom(:,2:3);
-scatter(opp_chrom(:,1), opp_chrom(:,2), 20, colors, 'filled', 'MarkerEdgeColor', 'k'); hold on
+scatter(opp_chrom(:,1), opp_chrom(:,2), mk_size, colors, 'filled'); hold on
 axis square
+grid on
 xlabel('L-M')
 ylabel('S-(L+M)')
+title(sprintf('(L+M)_{mean} = %.4f cd/m^2', mean(DKL_chrom(:,1))));
 
 
 
