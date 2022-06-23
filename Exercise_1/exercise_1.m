@@ -12,7 +12,7 @@ figure, plot( lambda_display, spec1(:,2), 'DisplayName', 'SDR display');
 hold on,
 plot( lambda_display, spec2(:,2), 'DisplayName', 'HDR display');
 xlabel('Wavelength (\lambda)');
-ylabel('Display emission spectra');
+ylabel('Display emission spectra (W/sr.m^{-2})');
 legend boxoff
 
 figure,
