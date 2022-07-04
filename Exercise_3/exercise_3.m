@@ -106,6 +106,8 @@ grid on
 xlabel('-a* ---------- 0 ---------- +a*')
 ylabel('-b* ---------- 0 ---------- +b*')
 title(sprintf('L* = %d', L_mid));
+xlim([-200 200])
+ylim([-200 200])
 
 
 % Plot chromaticity coordinates in Luv space
@@ -118,6 +120,8 @@ grid on
 xlabel('-u* ---------- 0 ---------- +u*')
 ylabel('-v* ---------- 0 ---------- +v*')
 title(sprintf('L* = %d', L_mid));
+xlim([-100 320])
+ylim([-350 120])
 
 
 % Plot chromaticity coordinates in xy space
@@ -130,21 +134,23 @@ axis square
 grid on
 xlabel('x')
 ylabel('y')
-title(sprintf('Y_{mean} = %.4f cd/m^2', mean(XYZ_chrom(:,2)).*max_lum_sdr));
+title(sprintf('Y_{mean} = %.2f (normalized units)', mean(XYZ_chrom(:,2))));
+xlim([0 0.8])
+ylim([0 0.9])
 
 
-% Plot chromaticity coordinates in opponent color mechanism
+% Plot chromaticity coordinates in rg chromaticity coordinates
 subplot(2, 2, 4)
-% LMS_chrom = RGB_chrom * M_rgb2lms_sdr';
-LMS_chrom = (XYZ_chrom.*max_lum_sdr) * M_xyz2lms';
-DKL_chrom = LMS_chrom * M_lms2dkl';
-opp_chrom = DKL_chrom(:,2:3);
-scatter(opp_chrom(:,1), opp_chrom(:,2), mk_size, colors, 'filled'); hold on
+r = RGB_chrom(:,1)./sum(RGB_chrom, 2);
+g = RGB_chrom(:,2)./sum(RGB_chrom, 2);
+scatter(r, g, mk_size, colors, 'filled'); hold on
 axis square
 grid on
-xlabel('Red-green')
-ylabel('Yellow-violet')
-title(sprintf('(L+M)_{mean} = %.4f cd/m^2', mean(DKL_chrom(:,1))));
+xlabel('r')
+ylabel('g')
+title(sprintf('(R+G+B)_{mean} = %.2f', mean(sum(RGB_chrom, 2))));
+xlim([0 1])
+ylim([0 1])
 
 
 
